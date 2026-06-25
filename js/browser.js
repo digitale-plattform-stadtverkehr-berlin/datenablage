@@ -13,7 +13,7 @@ function bytesToSize(bytes) {
 }
 
 const url = new URL(window.location);
-const path = url.searchParams.get('path');
+const path = filterXSS(url.searchParams.get('path'));
 const prefix = path?'&prefix='+path:'';
 
 
