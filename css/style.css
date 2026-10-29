@@ -56,3 +56,8 @@ img.logo {
 #filebrowser{
     clear:both;
 }
+
+#error {
+    margin: 20px 5px;
+    color: red;
+}

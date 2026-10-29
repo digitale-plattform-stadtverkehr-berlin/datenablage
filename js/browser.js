@@ -31,7 +31,7 @@ function createBrowser(elem, container){
     }
     breadcrumbs += "</div>";
 
-    elem.innerHTML = breadcrumbs + "  <table id=\"directories\">\n"
+    elem.innerHTML = "<div id=\"error\" hidden></div> " + breadcrumbs + "  <table id=\"directories\">\n"
         +"   <tr><th>Verzeichnisse</th></tr>\n"
         +"  </table>\n"
         +"  <table id=\"files\">\n"
@@ -40,6 +40,7 @@ function createBrowser(elem, container){
 
     const directory_table = document.getElementById("directories");
     const file_table = document.getElementById("files");
+    const error_div = document.getElementById("error");
     const options = { month: "2-digit", day: "2-digit", year: "numeric", hour:"2-digit", minute:"2-digit"};
     const dateFormat = new Intl.DateTimeFormat("de-DE", options);
 
@@ -58,7 +59,20 @@ function createBrowser(elem, container){
     }
 
     fetch(AZURE_DOMAIN+container+"/?restype=container&comp=list&include=metadata"+prefix)
-        .then(response => response.text())
+        .catch(error => undefined)
+        .then(response => {
+            if (response?.status === 200) {
+                return response.text()
+            }
+            else {
+                throw new Error(response.statusText);
+            }
+        })
+        .catch(error => {
+            error_div.innerHTML = "<b>Daten konnten aufgrund von Verbindungsproblemen nicht abgerufen werden.</b>";
+            error_div.hidden = false;
+            return ""
+        })
         .then(str => new window.DOMParser().parseFromString(str, "text/xml"))
         .then(dom => {
             let blobs = dom.evaluate( '/EnumerationResults/Blobs/Blob' ,dom, null, XPathResult.ANY_TYPE, null )
@@ -82,7 +96,7 @@ function createBrowser(elem, container){
             }
 
             if(!path && dirs.length == 0){
-                file_table.hidden = true;
+                directory_table.hidden = true;
             }
 
             let hasFiles = false;
